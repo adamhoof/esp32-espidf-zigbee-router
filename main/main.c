@@ -8,10 +8,9 @@
 
 static const char *TAG = "ESP_ZB_ROUTER";
 
-/* Zigbee Configuration */
-#define MAX_CHILDREN 10                 // Number of end devices this router can handle
-#define INSTALLCODE_POLICY_ENABLE false // Disable install code for easier joining
-#define HA_ESP_LIGHT_ENDPOINT 10        // Endpoint for the light function
+#define MAX_CHILDREN 10
+#define INSTALLCODE_POLICY_ENABLE false
+#define HA_ESP_LIGHT_ENDPOINT 10
 #define ESP_ZB_PRIMARY_CHANNEL_MASK ESP_ZB_TRANSCEIVER_ALL_CHANNELS_MASK
 
 #define ESP_ZB_DEFAULT_RADIO_CONFIG()                           \
@@ -24,7 +23,6 @@ static const char *TAG = "ESP_ZB_ROUTER";
 .host_connection_mode = ZB_HOST_CONNECTION_MODE_NONE,   \
 }
 
-/* Router Configuration Macro */
 #define ESP_ZB_ZR_CONFIG()                                          \
     {                                                               \
        .esp_zb_role = ESP_ZB_DEVICE_TYPE_ROUTER,                   \
@@ -34,20 +32,14 @@ static const char *TAG = "ESP_ZB_ROUTER";
         },                                                          \
     }
 
-/* Main Zigbee Task */
 static void esp_zb_task(void *pvParameters)
 {
-    /* 1. Initialize Zigbee Stack with Router Config */
     esp_zb_cfg_t zb_nwk_cfg = ESP_ZB_ZR_CONFIG();
 
-    // CRITICAL: Disable LQI threshold to ensure the router joins easily
-    // Default is 32, which often rejects parents with decent signals
     esp_zb_secur_network_min_join_lqi_set(0);
 
     esp_zb_init(&zb_nwk_cfg);
 
-    /* 2. Define the On/Off Light Data Model
-       This ensures the device shows up in Home Assistant */
     esp_zb_on_off_light_cfg_t light_cfg = ESP_ZB_DEFAULT_ON_OFF_LIGHT_CONFIG();
 
     esp_zb_ep_list_t *esp_zb_on_off_light_ep = esp_zb_on_off_light_ep_create(
@@ -55,7 +47,6 @@ static void esp_zb_task(void *pvParameters)
         &light_cfg
     );
 
-    /* 3. Register the Device */
     esp_zb_device_register(esp_zb_on_off_light_ep);
 
     ESP_ERROR_CHECK(esp_zb_start(false));
@@ -63,7 +54,6 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_stack_main_loop();
 }
 
-/* Signal Handler - Manages Network Steering */
 void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
 {
     uint32_t *p_sg_p = signal_struct->p_app_signal;
