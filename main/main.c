@@ -7,30 +7,21 @@
 
 static const char *TAG = "ESP32_RANGE_EXTENDER";
 
-#define MAX_CHILDREN 10
-#define INSTALLCODE_POLICY_ENABLE false
-#define ESP_ZB_PRIMARY_CHANNEL_MASK ESP_ZB_TRANSCEIVER_ALL_CHANNELS_MASK
-
-#define ESP_ZB_HA_RANGE_EXTENDER_DEVICE_ID 0x0008
-#define RANGE_EXTENDER_ENDPOINT 1
-
 #define ESP_ZB_DEFAULT_RADIO_CONFIG()                           \
 {                                                           \
 .radio_mode = ZB_RADIO_MODE_NATIVE,                     \
 }
-
 #define ESP_ZB_DEFAULT_HOST_CONFIG()                            \
 {                                                           \
 .host_connection_mode = ZB_HOST_CONNECTION_MODE_NONE,   \
 }
 
-
 #define ESP_ZB_ZR_CONFIG()                                          \
     {                                                               \
       .esp_zb_role = ESP_ZB_DEVICE_TYPE_ROUTER,                   \
-      .install_code_policy = INSTALLCODE_POLICY_ENABLE,           \
+      .install_code_policy = false,           \
       .nwk_cfg.zczr_cfg = {                                       \
-          .max_children = MAX_CHILDREN,                           \
+          .max_children = 10,                           \
         },                                                          \
     }
 
@@ -54,7 +45,7 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_ep_list_t *ep_list = esp_zb_ep_list_create();
 
     esp_zb_endpoint_config_t endpoint_config = {
-       .endpoint = RANGE_EXTENDER_ENDPOINT,
+       .endpoint = 1,
        .app_profile_id = ESP_ZB_AF_HA_PROFILE_ID,
        .app_device_id = ESP_ZB_HA_RANGE_EXTENDER_DEVICE_ID,
        .app_device_version = 0
@@ -63,6 +54,8 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_ep_list_add_ep(ep_list, cluster_list, endpoint_config);
 
     esp_zb_device_register(ep_list);
+
+    esp_zb_set_primary_network_channel_set(ESP_ZB_TRANSCEIVER_ALL_CHANNELS_MASK);
 
     ESP_ERROR_CHECK(esp_zb_start(false));
 
